@@ -25,7 +25,7 @@ end
 
 function collision.isSolid(pID)
   if pID == "0" then return false end
-  if pID >= "1" and pID ~= "9" then return true end
+  if pID >= "1" and pID ~= "9" and pID ~= "14" and pID ~= "15" then return true end
 end
 
 function collision.isJumpThrough(pID)
@@ -34,12 +34,8 @@ function collision.isJumpThrough(pID)
 end
 
 function collision.isLadder(pID)
-  if pID == "H" then 
-    return true 
-  elseif pID == "#" then 
-    return true 
-  end
-    return false
+  if pID == "14" or pID == "15" then return true end 
+  return false
 end
 
 function collision.collideRight(pSprite)
@@ -61,15 +57,15 @@ function collision.collideBelow(pSprite)
   local id1 = collision.getTileAt(pSprite.x + 1, pSprite.y + TILE_HEIGHT)
   local id2 = collision.getTileAt(pSprite.x + 14, pSprite.y + TILE_HEIGHT)
 
-  if (collision.isJumpThrough(id1) or collision.isJumpThrough(id2)) and pSprite.collisionRelease then
-    local lig = math.floor((pSprite.y + (TILE_HEIGHT / 2)) / TILE_HEIGHT) + 1
-    local yLine = (lig - 1) * TILE_HEIGHT
-    local distance = pSprite.y - yLine
+  -- if (collision.isJumpThrough(id1) or collision.isJumpThrough(id2)) and pSprite.collisionRelease then
+  --   local lig = math.floor((pSprite.y + (TILE_HEIGHT / 2)) / TILE_HEIGHT) + 1
+  --   local yLine = (lig - 1) * TILE_HEIGHT
+  --   local distance = pSprite.y - yLine
 
-    if distance >= 0 and distance < 10 then
-      return true
-    end
-  end
+  --   if distance >= 0 and distance < 10 then
+  --     return true
+  --   end
+  -- end
 
   if collision.isSolid(id1) or collision.isSolid(id2) then return true end
   return false

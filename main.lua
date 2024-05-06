@@ -50,9 +50,9 @@ function initGame(nbLevel)
   player.AddAnimation("images/player", "run",
   { "run1", "run2", "run3", "run4", "run5",
   "run6", "run7", "run8", "run9", "run10" })
-  -- player.AddAnimation("images/player", "climb",
-  -- { "climb1", "climb2" })
-  -- player.AddAnimation("images/player", "climb_idle", { "climb1" })
+  player.AddAnimation("images/player", "climb",
+  { "climb1", "climb2" })
+  player.AddAnimation("images/player", "climb_idle", { "climb1" })
   player.PlayAnimation("idle")
   
   player.gravity = 500
@@ -81,7 +81,7 @@ function love.update(dt)
 end
 
 function love.draw()
-  -- love.graphics.scale(2,2)
+  love.graphics.scale(2,2)
 
   -- Affiche la map
   _level.drawMap()
@@ -92,14 +92,14 @@ function love.draw()
     _sprite.drawSprite(drawSprite)
   end
   
-  -- size = heroSprites[1].images['idle1']:getHeight()
-  -- scaleAjuste = 0
-  -- love.graphics.setColor( 0,1,0 )
-  -- love.graphics.rectangle('fill', heroSprites[1].x, heroSprites[1].y, 4,4)
-  -- love.graphics.rectangle('fill', size + heroSprites[1].x, heroSprites[1].y , 4,4)
-  -- love.graphics.rectangle('fill', heroSprites[1].x, size + heroSprites[1].y + scaleAjuste, 4,4)
-  -- love.graphics.rectangle('fill', size + heroSprites[1].x, size + heroSprites[1].y + scaleAjuste, 4,4)
-  -- love.graphics.setColor( 1,1,1 )
+  size = heroSprites[1].images['idle1']:getHeight()
+  scaleAjuste = 0
+  love.graphics.setColor( 0,1,0 )
+  love.graphics.rectangle('fill', heroSprites[1].x, heroSprites[1].y, 4,4)
+  love.graphics.rectangle('fill', size + heroSprites[1].x, heroSprites[1].y , 4,4)
+  love.graphics.rectangle('fill', heroSprites[1].x, size + heroSprites[1].y + scaleAjuste, 4,4)
+  love.graphics.rectangle('fill', size + heroSprites[1].x, size + heroSprites[1].y + scaleAjuste, 4,4)
+  love.graphics.setColor( 1,1,1 )
 
 end
 

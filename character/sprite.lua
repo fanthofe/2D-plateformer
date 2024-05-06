@@ -1,8 +1,8 @@
 local sprite = {}
 sprite.collision = require('../collision')
 
--- local x = 11
--- local y = 1
+local x = 0
+local y = 0
 
 function sprite.createSprite(pType, pX, pY)
     local mySprite = {}
@@ -51,14 +51,54 @@ function sprite.createSprite(pType, pX, pY)
     return mySprite
   end
 
+  function alignOnLine(pSprite)
+    local lig = math.floor((pSprite.y + TILE_HEIGHT / 2) / TILE_HEIGHT) + 1
+    pSprite.y = (lig - 1) * TILE_HEIGHT
+  end
+
+  function alignOnColumn(pSprite)
+    local lig = math.floor((pSprite.x + TILE_WIDTH / 2) / TILE_WIDTH) + 1
+    pSprite.x = (lig - 1) * TILE_WIDTH
+  end
+
   function sprite.updatePlayer(pPlayer, dt)
     -- Locals for Physics
-    local accel = 500
-    local friction = 300
-    local maxSpeed = 150
-    local jumpVelocity = -280
+    local accel = 350
+    local friction = 200
+    local maxSpeed = 80
+    local jumpVelocity = -190
     local newAnimation = "idle"
-  
+
+    -- Scale detection
+    local idUnder  = sprite.collision.getTileAt(pPlayer.x + TILE_WIDTH/2, pPlayer.y + TILE_HEIGHT)
+    local idOverlap  = sprite.collision.getTileAt(pPlayer.x + TILE_WIDTH/2, pPlayer.y + TILE_HEIGHT-1)
+
+    -- Check if the player overlap a ladder
+    local isOnLadder = sprite.collision.isLadder(idUnder) or sprite.collision.isLadder(idOverlap)
+
+    if sprite.collision.isLadder(idOverlap) == false and sprite.collision.isLadder(idUnder) then
+      pPlayer.standing = true
+    end
+
+    -- Stop Jump ?
+    if pPlayer.isJumping and 
+    (sprite.collision.collideBelow(pPlayer) or sprite.collision.isLadder(idUnder)) then
+      pPlayer.isJumping = false
+      pPlayer.standing = true
+      alignOnLine(pPlayer)
+    end
+
+    -- Climb
+    if isOnLadder and pPlayer.isJumping == false then
+      pPlayer.gravity = 0
+      pPlayer.vy = 0
+      pPlayer.bJumpReady = false
+    end
+
+    if sprite.collision.isLadder(idUnder) and sprite.collision.isLadder(idOverlap) then
+      newAnimation = "climb_idle"
+    end    
+
     -- Friction
     if pPlayer.vx > 0 then
       pPlayer.vx = pPlayer.vx - friction * dt
@@ -76,53 +116,66 @@ function sprite.createSprite(pType, pX, pY)
       pPlayer.flip = false
       newAnimation = "run"
     end
+
     if love.keyboard.isDown('left') then
       pPlayer.vx = pPlayer.vx - accel * dt
       if pPlayer.vx < -maxSpeed then pPlayer.vx = -maxSpeed end
       pPlayer.flip = true
       newAnimation = "run"
     end
+
     if love.keyboard.isDown('up') and pPlayer.standing and pPlayer.bJumpReady then
+      pPlayer.isJumping = true
+      pPlayer.gravity = 500
       pPlayer.vy = jumpVelocity
       pPlayer.standing = false
       pPlayer.bJumpReady = false
     end
+
+    if love.keyboard.isDown("up") and isOnLadder == true and pPlayer.isJumping == false then
+      pPlayer.vy = -50
+      newAnimation = "climb"
+    end    
+
     if love.keyboard.isDown('up') == false and pPlayer.bJumpReady == false then
       pPlayer.bJumpReady = true
     end
+
+    if love.keyboard.isDown("down") and isOnLadder == true then
+      pPlayer.vy = 50
+      newAnimation = "climb"
+    end    
+
     if love.keyboard.isDown('down') and pPlayer.collisionRelease and pPlayer.standing then
       pPlayer.collisionRelease = false
     end
 
+    -- Not climbing
+    if isOnLadder == false and pPlayer.gravity == 0 and 
+    pPlayer.isJumping == false then
+      pPlayer.gravity = 500
+    end
+
+
     -- Ajuster la position du personnage en fonction de x et y
-    -- if love.keyboard.isDown('a') then 
-    --   x = x + 1
-    -- end
-    -- if love.keyboard.isDown('z') then 
-    --   x = x - 1
-    -- end
-    -- if love.keyboard.isDown('q') then 
-    --   y = y + 1
-    -- end
-    -- if love.keyboard.isDown('s') then 
-    --   y = y - 1
-    -- end
+    if love.keyboard.isDown('a') then 
+      x = x + 1
+    end
+    if love.keyboard.isDown('z') then 
+      x = x - 1
+    end
+    if love.keyboard.isDown('q') then 
+      y = y + 1
+    end
+    if love.keyboard.isDown('s') then 
+      y = y - 1
+    end
 
     pPlayer.PlayAnimation(newAnimation)
 
     -- Move
     pPlayer.x = pPlayer.x + pPlayer.vx * dt
     pPlayer.y = pPlayer.y + pPlayer.vy * dt
-  end
-  
-  function alignOnLine(pSprite)
-    local lig = math.floor((pSprite.y + TILE_HEIGHT / 2) / TILE_HEIGHT) + 1
-    pSprite.y = (lig - 1) * TILE_HEIGHT
-  end
-
-  function alignOnColumn(pSprite)
-    local lig = math.floor((pSprite.x + TILE_WIDTH / 2) / TILE_WIDTH) + 1
-    pSprite.x = (lig - 1) * TILE_WIDTH
   end
 
   function sprite.updateSprite(pSprite, dt)
@@ -206,11 +259,16 @@ function sprite.createSprite(pType, pX, pY)
     local halfh = img:getHeight() / 2
     local flipCoef = 1
     local scale = 1
+    local scaleAjust = 1
 
-    if pSprite.flip then flipCoef = -1 end
+    if pSprite.flip then 
+      flipCoef = -1 
+      scaleAjust = -scaleAjust
+    end
+
     love.graphics.draw(
       img, -- Image
-      pSprite.x + halfw + 2, -- horizontal position
+      pSprite.x + halfw + scaleAjust, -- horizontal position
       pSprite.y + halfh, -- vertical position
       0, -- rotation (none = 0)
       scale * flipCoef, -- horizontal scale
